@@ -7,14 +7,14 @@ function lockContext(canvas) {
 	var ctx = canvas.getContext("2d");
 	var w = canvas.width;
 	var h = canvas.height;
-	var id = ctx.getImageData(0,0,w,h);
+	var id = ctx.getImageData(0, 0, w, h);
 	var data = id.data;
 	
 	function index(x, y) {
-		return 4*(w*y+x);
+		return 4 * (w * y + x);
 	}
 	
-	function putPixel(x, y, red, green, blue, alpha){
+	function putPixel(x, y, red, green, blue, alpha) {
 		var i = index(x, y);
 		data[i++] = red;
 		data[i++] = green;
@@ -24,7 +24,7 @@ function lockContext(canvas) {
 	
 	function getPixel(x, y) {
 		var i = index(x, y);
-		return data.slice(i, i+4);
+		return data.slice(i, i + 4);
 	}
 	
 	function show() {
@@ -32,9 +32,9 @@ function lockContext(canvas) {
 	}
 	
 	var lc = {
-		w: w, 
-		h: h, 
-		canvas: canvas, 
+		w: w,
+		h: h,
+		canvas: canvas,
 		ctx: ctx,
 		putPixel: putPixel,
 		getPixel: getPixel,
