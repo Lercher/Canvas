@@ -7,7 +7,7 @@ function lockContext(canvas) {
 	var ctx = canvas.getContext("2d");
 	var w = canvas.width;
 	var h = canvas.height;
-	var id = ctx.getImageData(0,0,w-1,h-1);
+	var id = ctx.getImageData(0,0,w,h);
 	var data = id.data;
 	
 	function index(x, y) {
