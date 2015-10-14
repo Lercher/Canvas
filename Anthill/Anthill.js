@@ -24,7 +24,8 @@ function createAntsAt(origin, n) {
 		ants[i] = {
 			x: origin.x,
 			y: origin.y,
-			nutrient: 0
+			nutrient: 0,
+			hungry: 0
 		}
 	}
 	return ants;
@@ -43,10 +44,10 @@ function show(field, ants, origin, lc) {
 			var f = arr[x];
 			if (f.nutrient > 0) {
 				var green = 255.0 * f.nutrient;
-				lc.putWhitePixel(x, y, 0, green, green);
-				lc.putWhitePixel(x+1, y, 0, green, green);
-				lc.putWhitePixel(x+1, y+1, 0, green, green);
-				lc.putWhitePixel(x, y+1, 0, green, green);
+				lc.putWhitePixel(x, y, 0, green, 64);
+				lc.putWhitePixel(x+1, y, 0, green, 64);
+				lc.putWhitePixel(x+1, y+1, 0, green, 64);
+				lc.putWhitePixel(x, y+1, 0, green, 64);
 			} else if (f.pheromone > 0) {
 				var red = 255.0 * f.pheromone;
 				lc.putWhitePixel(x, y, red, 0, 0);  				
@@ -59,8 +60,11 @@ function show(field, ants, origin, lc) {
 		var ant=ants[i];
 		if (ant.nutrient > 0) {
 			lc.putPixel(ant.x, ant.y, 0, 0, 0); // black ant
+			lc.putPixel(ant.x+1, ant.y, 0, 0, 0); // black ant
+			lc.putPixel(ant.x, ant.y+1, 0, 0, 0); // black ant
+			lc.putPixel(ant.x+1, ant.y+1, 0, 0, 0); // black ant
 		} else {
-			lc.putWhitePixel(ant.x, ant.y, 0, 0, 255); // blue ant
+			lc.putPixel(ant.x, ant.y, 0, 0, ant.hungry*25); // black ant
 		}
 	}
 	lc.show();
@@ -137,16 +141,20 @@ function findPheromone(ant, field, origin) {
 function moveAnt(ant, field, origin, capacity, stinkyness) {
 	var f = fieldOf(ant, field);
 	
-	var onNutrientWithCapacity = ((f.nutrient > capacity) && (ant.nutrient < capacity));	
+	ant.hungry += 0.01;
+	
+	var onNutrientWithCapacity = ((f.nutrient > 0.0) && (ant.nutrient < capacity));	
 	if (onNutrientWithCapacity) {
 		// don't move yet, but pickup nutrient;
 		f.nutrient -= capacity;
+		f.nutrient = Math.max(f.nutrient, 0.0);
 		ant.nutrient += capacity;
 	} 
 	
 	var onOrigin = (ant.x === origin.x && ant.y === origin.y);
 	if (onOrigin) {
 		ant.nutrient = 0.0;
+		ant.hungry = 0.0;
 	}
 	
 	var hasNutrient = (ant.nutrient > 0.0);
@@ -159,15 +167,22 @@ function moveAnt(ant, field, origin, capacity, stinkyness) {
 		if (nf.pheromone > 1.0)
 			nf.pheromone = 1.0;
 	} else {
-		var p = findPheromone(ant, field, origin);
-		if (p) {
-			ant.x += p.x;
-			ant.y += p.y;
+		var isHungry = (ant.hungry * Math.random() > 4.0);
+		if (isHungry) {
+			var to = towardsOrigin(ant, origin);
+			ant.x += to.x;
+			ant.y += to.y;
 		} else {
-			var rc = randomCoordinate(3, 3);
-			var nc = coord(ant, field, rc.x - 1, rc.y - 1);
-			ant.x = nc.x;
-			ant.y = nc.y;
+			var p = findPheromone(ant, field, origin);
+			if (p) {
+				ant.x += p.x;
+				ant.y += p.y;
+			} else {
+				var rc = randomCoordinate(3, 3);
+				var nc = coord(ant, field, rc.x - 1, rc.y - 1);
+				ant.x = nc.x;
+				ant.y = nc.y;
+			}
 		}				
 	}
 }
@@ -191,7 +206,7 @@ function unstink(field, stinkyness) {
 	}
 }
 
-var w=400, h=400, n=400, feed=150;
+var w=400, h=400, n=400, feed=500;
 var field = createField(w, h);
 var origin = {x: w/2, y: h/2};
 var ants = createAntsAt(origin, n);
@@ -200,7 +215,7 @@ for(var i=0; i<feed; i++)
 {
 	var c = randomCoordinate(field.w, field.h);
 	var f = field[c.y][c.x];
-	f.nutrient = 1.0;
+	f.nutrient = 0.5 * Math.random() + 0.5;
 }
 
 var canvas = document.getElementById("c");
@@ -214,4 +229,4 @@ function cycle() {
 	show(field, ants, origin, lc);
 }
 
-setInterval(cycle, 1000 / 30);
+setInterval(cycle, 1000 / 60);
