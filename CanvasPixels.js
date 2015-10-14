@@ -21,6 +21,13 @@ function lockContext(canvas) {
 		data[i++] = blue;
 		data[i++] = alpha || 255;
 	}
+
+	function putWhitePixel(x, y, red, green, blue, alpha) {
+		var mr = Math.max(green, blue);
+		var mg = Math.max(red, blue);
+		var mb = Math.max(red, green);
+		putPixel(x, y, 255-mr, 255-mg, 255-mb, alpha);
+	}
 	
 	function getPixel(x, y) {
 		var i = index(x, y);
@@ -37,6 +44,7 @@ function lockContext(canvas) {
 		canvas: canvas,
 		ctx: ctx,
 		putPixel: putPixel,
+		putWhitePixel: putWhitePixel,
 		getPixel: getPixel,
 		show: show
 	};
